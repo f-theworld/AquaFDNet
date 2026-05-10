@@ -5,3 +5,6 @@ __pycache__/
 
 # TensorRT engine binaries (regenerate on target machine)
 plugin/engines_matrix/*.plan
+
+# Local deploy bundle output
+deploy/dist/

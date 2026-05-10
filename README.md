@@ -8,7 +8,7 @@ The **companion paper is not yet formally published**. To respect the review and
 
 **After the paper appears, we will release the remaining model-side artifacts**—architecture and training code, pretrained weights, export defaults, and configuration—so that the Docker Quick Start, ONNX export, and `plugin/` evaluation flows can be executed end-to-end without relying on private copies.
 
-Until that release, this repository provides **ONNX/TensorRT Python helpers under `plugin/`, container definitions under `docker/`, and CUDA reference snippets under `CUDA/`** for early inspection. **The TensorRT custom-operator C++/CUDA sources are not shipped here during the pre-publication period** (see [Custom operator open source](#custom-operator-tensorrt-plugin-open-source) below).
+Until that release, this repository provides **ONNX/TensorRT Python helpers under `plugin/`, container definitions under `docker/`, deployment helpers under `deploy/`, and CUDA reference snippets under `CUDA/`** for early inspection. **The TensorRT custom-operator C++/CUDA sources are not shipped here during the pre-publication period** (see [Custom operator open source](#custom-operator-tensorrt-plugin-open-source) below).
 
 > **Note:** `docker compose … build` runs `PYTHONPATH=/workspace python3 -c "from AquaFDNet import AquaFDNet"` and compiles the FDConv TensorRT plugin from sources under `plugin/`. **Both the model package and the plugin sources are required for a full image build** unless you adapt the Dockerfile to inject a prebuilt `.so`.
 
@@ -30,6 +30,7 @@ Until then, the scripts in `plugin/` document export and evaluation **interfaces
 | `docker/compose.yaml`    | Sample compose: mount repo to `/workspace`, GPU reservation, `torch-cache` volume, optional dataset mounts.                                                                                             |
 | `docker/build_plugin.sh` | Compiles the FDConv TensorRT plugin to `libfdconv_trt_plugin.so` from `plugin/*.cpp` / `plugin/*.cu` **when those sources are present**.                                                                |
 | `plugin/`                | Python tooling only: `export_full_onnx.py`, `min_align_test.py`, `eval_trt_uieb_accuracy_benchmark.py`. **Operator C++/CUDA sources are not in this checkout** (pending the open-source release above). |
+| `deploy/`                | Cross-platform packaging and smoke scripts: `collect_env` (`.ps1`/`.sh`), Linux `build_*` helpers, Windows `build_engine_windows.ps1` / `Run-DeployPipeline.ps1` (require `TENSORRT_ROOT` and `CUDA_PATH`, or pass `-TensorRtRoot`/`-CudaRoot`), `package_release.ps1`, `verify_deploy.ps1`, `run_infer_minimal.py`. Output bundle goes to `deploy/dist/` (gitignored). |
 | `CUDA/`                  | C++/CUDA sources in the style of PyTorch `ATen` CUDA spectral ops (cuFFT, Hermitian symmetry fill, etc.). Reference material for FFT alignment—not a standalone executable.                             |
 
 
@@ -55,6 +56,8 @@ docker compose -f docker/compose.yaml run --rm trt-dev bash
 In-container plugin path: `/opt/fdconv/libfdconv_trt_plugin.so` (on `LD_LIBRARY_PATH`).
 
 For build args, **trtexec** `.plan` generation from ONNX, Python alignment tests, and troubleshooting, see **[docker/README.md](docker/README.md)**.
+
+Windows packaging and minimal TRT inference without the full training stack are documented in the scripts under **`deploy/`** (set environment variables or pass explicit roots; `Run-DeployPipeline.ps1` expects `plugin/build_plugin.ps1` and `plugin/run_trtexec_smoke.ps1` when build steps are not skipped).
 
 ## CUDA directory
 
