@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+*.pyd
+.Python
+
+# TensorRT engine binaries (regenerate on target machine)
+plugin/engines_matrix/*.plan

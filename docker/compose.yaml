@@ -1,0 +1,37 @@
+# AquaFDNet：Linux + GPU + TensorRT 本地编排示例
+#
+# 前置：安装 NVIDIA Container Toolkit，Docker 启用 GPU。
+#
+# 构建镜像：
+#   docker compose -f docker/compose.yaml build
+#
+# 交互 shell（挂载当前仓库；若脚本仅在 plugin/，见下方导出命令）：
+#   docker compose -f docker/compose.yaml run --rm trt-dev bash
+#
+# 注意：compose 文件位于 docker/ 子目录时，context 为上级目录（仓库根），见 build.context。
+
+services:
+  trt-dev:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: aquafdnet-trt:dev
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace
+      # 避免每次 --rm 容器都重新下载 LPIPS/AlexNet 等权重（需与下方顶层 volumes 同时存在）
+      - torch-cache:/root/.cache/torch
+      # 评测 UIEB 时需挂载到 /dataset（与 eval 脚本 --input-dir/--ref-dir 一致），例如：
+      # - /path/on/host/UIEB/test:/dataset/test:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+# 命名卷：被 services.trt-dev.volumes 引用时必须在此声明，否则报错
+# "refers to undefined volume torch-cache"
+volumes:
+  torch-cache:
